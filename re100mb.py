@@ -1,6 +1,5 @@
 ﻿# coding=utf-8
 import re#gex as re
-import lzma
 import os
 import time
 import hashlib
@@ -155,6 +154,8 @@ re_list = (
 def read_data():
     # decompress 100MB.txt.xz at the first time
     if not os.path.isfile('100MB.txt'):
+        import lzma
+
         with lzma.open('100MB.txt.xz') as f:
             file_content = f.read()
 
@@ -171,7 +172,8 @@ def read_data():
 
     # compile patterns
     for i in re_list:
-        i.append(re.compile(''.join(i[0]), i[1]))
+        i[0] = ''.join(i[0])
+        i.append(re.compile(i[0], i[1]))
 
     return txt_lst
 
@@ -179,8 +181,8 @@ def do_test(txt_lst):
     all_time = 0
     print('start 100MB test, please wait dozens of seconds.')
 
-    for i, r in enumerate(re_list, 1):
-        print('test %02d/%d, ' % (i, len(re_list)), end='', flush=True)
+    for test_no, r in enumerate(re_list, 1):
+        print('test %02d/%d, ' % (test_no, len(re_list)), end='', flush=True)
         t1 = time.perf_counter()
 
         for i in range(len(txt_lst)):
@@ -205,6 +207,26 @@ def do_test(txt_lst):
     else:
         print('Generated data passed hash verification.')
 
+def find_diff(txt_lst):
+    import re
+    import regex
+
+    for test_no, r in enumerate(re_list, 1):
+        for i in range(len(txt_lst)):
+            r1 = re.sub(r[0], r[2], txt_lst[i], flags=r[1])
+            r2 = regex.sub(r[0], r[2], txt_lst[i], flags=r[1])
+            if r1 != r2:
+                print('test %02d generates wrong data, abort.' % test_no)
+                print(txt_lst[i])
+                print()
+                print(r1)
+                print()
+                print(r2)
+                print()
+                raise Exception()
+            txt_lst[i] = r1
+
 if __name__ == "__main__":
     txt_lst = read_data()
     do_test(txt_lst)
+    #find_diff(txt_lst)
