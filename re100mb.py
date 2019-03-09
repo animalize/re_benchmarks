@@ -152,18 +152,22 @@ re_list = (
             )
 
 def read_data():
+    dir_path = os.path.dirname(os.path.abspath(__file__))
+    file_path = os.path.join(dir_path, '100MB.txt')
+    xz_path = os.path.join(dir_path, '100MB.txt.xz')
+
     # decompress 100MB.txt.xz at the first time
-    if not os.path.isfile('100MB.txt'):
+    if not os.path.isfile(file_path):
         import lzma
 
-        with lzma.open('100MB.txt.xz') as f:
+        with lzma.open(xz_path) as f:
             file_content = f.read()
 
-        with open('100MB.txt', 'wb') as f:
+        with open(file_path, 'wb') as f:
             f.write(file_content)
 
     # read data
-    with open('100MB.txt', encoding='gb18030') as f:
+    with open(file_path, encoding='gb18030') as f:
         txt = f.read()
 
     txt_lst = [m.group(1) for m in 
