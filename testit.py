@@ -10,7 +10,7 @@ TEMPLATE_ONCE = """\
 _t1 = time.perf_counter()
 {stmt}
 _t2 = time.perf_counter()
-_t = _t2 - _t1
+_t_once = _t2 - _t1
 {teardown}
 """
 
@@ -79,37 +79,37 @@ def testit(stmts, description=''):
         print()
         raise e
     else:
-        _t = locals_d['_t']
-        print(t2str(_t), ', ', sep='', end='', flush=True)
+        _t_once = locals_d['_t_once']
+        print(t2str(_t_once), ', ', sep='', end='', flush=True)
 
     # decide loop
     block = 1
-    if _t == 0:
+    if _t_once == 0:
         loop = 200000
-    elif _t < 0.000001:
-        loop = int(15/_t)
+    elif _t_once < 0.000001:
+        loop = int(15/_t_once)
         block = 8
-    elif _t < 0.00001:
-        loop = int(9/_t)
+    elif _t_once < 0.00001:
+        loop = int(9/_t_once)
         block = 7
-    elif _t < 0.001:
-        loop = int(6/_t)
+    elif _t_once < 0.001:
+        loop = int(6/_t_once)
         block = 6
-    elif _t < 0.01:
-        loop = int(3/_t)
+    elif _t_once < 0.01:
+        loop = int(3/_t_once)
         block = 5
-    elif _t < 0.1:
-        loop = int(3/_t)
+    elif _t_once < 0.1:
+        loop = int(3/_t_once)
         block = 3
-    elif _t < 0.5:
+    elif _t_once < 0.5:
         loop = 10
-    elif _t < 1:
+    elif _t_once < 1:
         loop = 5
-    elif _t < 15:
+    elif _t_once < 15:
         loop = 3
     else:
         loop = 1
-    print('block:%d loop:%d' % (block, loop))
+    print('%d x %d' % (block, loop))
 
     # loop code ====================================
 
@@ -141,6 +141,7 @@ def testit(stmts, description=''):
             _t = locals_d['_t']
             block_result[i] = _t/loop
 
+    block_result.append(_t_once)
     result = min(block_result)
     print(t2str(result))
 
@@ -178,7 +179,7 @@ p.match(s)
 stmts = '''\
 p = re.compile(r'(?:.*?\b(?=(\t)|(x))x)*')
 ------------------
-m = p.match('a\txa\tx')
+m = p.match(1000000*'a\txa\tx')
 ------------------
 assertEqual(m.groups(), (None, None))
 '''
