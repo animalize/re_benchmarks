@@ -38,7 +38,13 @@ def t2str(time):
     s = "%.2f %s" % (time, unit)
     return s
 
-re_split = re.compile(r'(?<=\n)-{3,}\n')
+p = (r'(?s)'
+     r'^(?:(.*?)\n={3,}\n)?'
+     r'(.*?)\n-{3,}\n'
+     r'(.+?)\n-{3,}'
+     r'(?:\n(.*)$|$)'
+)
+re_split = re.compile(p)
 re_noassign = re.compile(r'(?m)^\w+\s*=\s*(.*)$')
 
 def assertEqual(a, b):
@@ -52,12 +58,17 @@ def testit(stmts, description=''):
         print(description)
 
     # split stmts
-    tp = re_split.split(stmts)
-    if len(tp) != 3:
+    m = re_split.match(stmts)
+    if not m:
         raise Exception("stmts format error.")
 
+    tp = (m.group(i+1) for i in range(4))
+    tp = (one if one is not None else 'no title' for one in tp)
     tp = (one.strip() for one in tp)
-    setup, stmt, teardown = ('pass' if not one else one for one in tp)
+    tp = ('pass' if not one else one for one in tp)
+    descript, setup, stmt, teardown = tp
+
+    print(descript)
 
     # locals
     locals_d = {
@@ -80,7 +91,8 @@ def testit(stmts, description=''):
         raise e
     else:
         _t_once = locals_d['_t_once']
-        print(t2str(_t_once), ', ', sep='', end='', flush=True)
+        print('first attempt: ', t2str(_t_once), ', loop: ',
+              sep='', end='', flush=True)
 
     # decide loop
     block = 1
@@ -109,7 +121,7 @@ def testit(stmts, description=''):
         loop = 3
     else:
         loop = 1
-    print('%d x %d' % (block, loop))
+    print('%d x %d ' % (block, loop), end='', flush=True)
 
     # loop code ====================================
 
@@ -140,10 +152,12 @@ def testit(stmts, description=''):
         else:
             _t = locals_d['_t']
             block_result[i] = _t/loop
+        print('.', end='', flush=True)
+    print()
 
     block_result.append(_t_once)
     result = min(block_result)
-    print(t2str(result))
+    print('best result:', t2str(result))
 
     print()
     return result, t2str(result), block, loop
@@ -174,13 +188,15 @@ p = re.compile(r'(a)?')
 p.match(s)
 ------------------
 '''
-##testit(stmts)
+#testit(stmts)
 
 stmts = '''\
-p = re.compile(r'(?:.*?\b(?=(\t)|(x))x)*')
+.*? MARK_PUSH in repeat
+=========
+p = re.compile(r'(.*?(b))*')
 ------------------
-m = p.match(1000000*'a\txa\tx')
+m = p.match(100 * 'ab')
 ------------------
-assertEqual(m.groups(), (None, None))
+
 '''
 testit(stmts)
