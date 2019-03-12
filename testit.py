@@ -116,28 +116,28 @@ def testit(stmts):
         loop = 200000
     elif _t_once < 0.000001:
         loop = int(15/_t_once)
-        block = 8
+        block = 10
     elif _t_once < 0.00001:
         loop = int(10/_t_once)
-        block = 7
+        block = 9
     elif _t_once < 0.001:
         loop = int(7/_t_once)
-        block = 6
+        block = 8
     elif _t_once < 0.01:
         loop = int(6/_t_once)
-        block = 5
+        block = 6
     elif _t_once < 0.1:
         loop = int(5/_t_once)
-        block = 3
+        block = 4
     elif _t_once < 0.5:
         loop = 1
         block = 15
     elif _t_once < 1:
         loop = 1
-        block = 7
+        block = 10
     elif _t_once < 15:
         loop = 1
-        block = 4
+        block = 5
     else:
         loop = 1
         block = 2
