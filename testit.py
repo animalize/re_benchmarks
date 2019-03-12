@@ -16,7 +16,7 @@ TEMPLATE_ONCE = """\
 _t1 = time.perf_counter()
 {stmt}
 _t2 = time.perf_counter()
-_t_once = _t2 - _t1
+_t = _t2 - _t1
 {teardown}
 """
 
@@ -25,7 +25,7 @@ _t1 = time.perf_counter()
 for _ in range({loop}):
     {stmt}
 _t2 = time.perf_counter()
-_t = _t2 - _t1
+_t = (_t2 - _t1) / {loop}
 """
 
 def t2str(time):
@@ -98,7 +98,7 @@ def testit(stmts):
         print()
         raise e
     else:
-        _t_once = locals_d['_t_once']
+        _t_once = locals_d['_t']
         print('first attempt: ', t2str(_t_once), ', loop: ',
               sep='', end='', flush=True)
     finally:
@@ -125,13 +125,17 @@ def testit(stmts):
         loop = int(5/_t_once)
         block = 3
     elif _t_once < 0.5:
-        loop = 15
+        loop = 1
+        block = 15
     elif _t_once < 1:
-        loop = 7
+        loop = 1
+        block = 7
     elif _t_once < 15:
-        loop = 3
+        loop = 1
+        block = 4
     else:
         loop = 1
+        block = 2
     print('%d x %d ' % (block, loop), end='', flush=True)
 
     # loop code ====================================
@@ -139,7 +143,10 @@ def testit(stmts):
     # remove assignment
     stmt = re_noassign.sub(r'\1', stmt)
     
-    src2 = TEMPLATE_LOOP.format(stmt=stmt, setup=setup, loop=loop)
+    if loop == 1:
+        src2 = TEMPLATE_ONCE.format(stmt=stmt, setup=setup, teardown="pass")
+    else:
+        src2 = TEMPLATE_LOOP.format(stmt=stmt, setup=setup, loop=loop)
 
     try:
         code2 = compile(src2, '<string>', 'exec')
@@ -163,8 +170,7 @@ def testit(stmts):
             print()
             raise e
         else:
-            _t = locals_d['_t']
-            block_result[i] = _t/loop
+            block_result[i] = locals_d['_t']
         finally:
             if gcold:
                 gc.enable()
