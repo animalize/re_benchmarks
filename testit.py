@@ -11,6 +11,8 @@ except:
 
 __all__ = ('testit',)
 
+DEBUG = 0
+
 TEMPLATE_ONCE = """\
 {setup}
 _t1 = time.perf_counter()
@@ -59,6 +61,9 @@ def assertEqual(a, b):
         raise Exception('assertEqual failed.')
 
 def testit(stmts):
+    if stmts is None:
+        print('------------------')
+        return
 
     # split stmts
     m = re_split.match(stmts)
@@ -139,6 +144,9 @@ def testit(stmts):
     print('%d x %d ' % (block, loop), end='', flush=True)
 
     # loop code ====================================
+    if DEBUG:
+        print()
+        return _t_once, t2str(_t_once), 1, 1
 
     # remove assignment
     stmt = re_noassign.sub(r'\1', stmt)
